@@ -910,13 +910,30 @@ float DegreesToRadians(float degrees)
 	return degrees * PI / 180.f;
 }
 
+namespace Camera
+{
+
+	void Camera()
+	{
+		float t = timer::frameBeginTime*.001;
+		float angle = 100;
+		float a = 3.5;
+		XMVECTOR Eye = XMVectorSet(sin(t)*a, 0, cos(t)*a, 0.0f);
+		XMVECTOR At = XMVectorSet(0, 0, 0, 0.0f);
+		XMVECTOR Up = XMVectorSet(0, 1, 0, 0.0f);
+
+		ConstBuf::camera.world[0] = XMMatrixIdentity();
+		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(Eye, At, Up));
+		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(angle), iaspect, 0.01f, 100.0f));
+
+		ConstBuf::UpdateCamera();
+		ConstBuf::ConstToVertex(3);
+		ConstBuf::ConstToPixel(3);
+	}
+}
+
 void mainLoop()
 {
-//	XMMATRIX proj = XMMatrixPerspectiveFovLH(DegreesToRadians(angle), width / (FLOAT)height, 0.01f, 100.0f);
-	float angle = 90;
-	ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(angle), iaspect, 0.01f, 100.0f));
-	ConstBuf::UpdateCamera();
-
 	frameConst();
 
 	InputAssembler::IA(InputAssembler::topology::triList);
@@ -929,10 +946,10 @@ void mainLoop()
 	Rasterizer::Cull(Rasterizer::cullmode::off);
 	Shaders::vShader(0);
 	Shaders::pShader(0);
-	ConstBuf::ConstToVertex(3);
 	ConstBuf::ConstToVertex(4);
-	ConstBuf::ConstToPixel(3);
 	ConstBuf::ConstToPixel(4);
+
+	Camera::Camera();
 
 	Draw::NullDrawer(1, 1);
 	Draw::Present();

@@ -48,11 +48,8 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     VS_OUTPUT output = (VS_OUTPUT)0;
     float2 quad[6] = { -1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, 1 };
     float2 p = quad[vID];
-    float angle = time.x * .1;
-    float3 pt = rotY(float3(p, 0), angle);
-    float4 pt4 = float4(pt+float3(0,0,2), 1);
-    output.pos = mul(pt4, proj[0]);
-
+    float4 pos = float4(quad[vID], 0, 1);
+    output.pos = mul(pos, mul(view[0], proj[0]));
     output.uv = float2(1, -1) * p / 2. + .5;
     return output;
 }
