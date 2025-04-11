@@ -130,7 +130,7 @@ namespace Textures
 #define mainRTIndex 0
 
 	enum tType { flat, cube };
-	
+
 
 	DXGI_FORMAT dxTFormat[4] = { DXGI_FORMAT_R8G8B8A8_UNORM ,DXGI_FORMAT_R8G8B8A8_SNORM ,DXGI_FORMAT_R16G16B16A16_FLOAT ,DXGI_FORMAT_R32G32B32A32_FLOAT };
 	enum tFormat { u8, s8, s16, s32 };
@@ -480,7 +480,7 @@ namespace Shaders {
 namespace Sampler
 {
 	enum class filter { linear, point, minPoint_magLinear };
-	enum class addr {clamp,wrap};
+	enum class addr { clamp, wrap };
 
 	ID3D11SamplerState* pSampler[3][2][2];//filter, addressU, addressV
 	ID3D11SamplerState* pSamplerComp;//for shadowmapping
@@ -772,7 +772,7 @@ namespace Depth
 namespace Device
 {
 
-	#define DirectXDebugMode false
+#define DirectXDebugMode false
 
 	D3D_DRIVER_TYPE	driverType = D3D_DRIVER_TYPE_NULL;
 
@@ -853,7 +853,7 @@ void Dx11Init()
 	ConstBuf::Init();
 	Sampler::Init();
 	Shaders::Init();
-	
+
 	//main RT
 	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
 }
@@ -881,6 +881,8 @@ namespace Draw
 
 	void NullDrawer(int quadCount, unsigned int instances = 1)
 	{
+		ConstBuf::drawerV[0] = sqrt(quadCount);
+		ConstBuf::drawerV[1] = sqrt(quadCount);
 		ConstBuf::Update(0, ConstBuf::drawerV);
 		ConstBuf::ConstToVertex(0);
 		ConstBuf::Update(1, ConstBuf::drawerP);
@@ -915,10 +917,10 @@ namespace Camera
 
 	void Camera()
 	{
-		float t = timer::frameBeginTime*.001;
+		float t = timer::frameBeginTime * .001;
 		float angle = 100;
 		float a = 3.5;
-		XMVECTOR Eye = XMVectorSet(sin(t)*a, 0, cos(t)*a, 0.0f);
+		XMVECTOR Eye = XMVectorSet(sin(t) * a, 0, cos(t) * a, 0.0f);
 		XMVECTOR At = XMVectorSet(0, 0, 0, 0.0f);
 		XMVECTOR Up = XMVectorSet(0, 1, 0, 0.0f);
 
@@ -943,7 +945,7 @@ void mainLoop()
 	Draw::Clear({ 0,0,1,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
-	Rasterizer::Cull(Rasterizer::cullmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::wireframe);
 	Shaders::vShader(0);
 	Shaders::pShader(0);
 	ConstBuf::ConstToVertex(4);
@@ -951,6 +953,6 @@ void mainLoop()
 
 	Camera::Camera();
 
-	Draw::NullDrawer(1, 1);
+	Draw::NullDrawer(64, 1);
 	Draw::Present();
 }

@@ -22,6 +22,13 @@ cbuffer drawMat : register(b2)
     float hilight;
 };
 
+cbuffer gc : register(b0)
+{
+    float gx;
+    float gy;
+};
+
+
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
@@ -47,8 +54,20 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
     float2 quad[6] = { -1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, 1 };
-    float2 p = quad[vID];
-    float4 pos = float4(quad[vID], 0, 1);
+    float2 p = quad[vID % 6];
+    uint n = vID / 6;
+
+    uint offsetX = (n % gx) * 2;
+    uint offsetY = (n / (int)gx) * 2;
+    p.x += offsetX - (gx - 1);
+    p.y += offsetY - (gy - 1);
+
+    float r = 1;
+    float r2 = 2;
+    p.x = (p.x / gx) * 3.14;
+    p.y = (p.y / gx) * 3.14 / 2;
+
+    float4 pos = float4(r * sin(p.x) + r2 * cos(p.y), p.y, r * cos(p.x) + r2 * cos(p.y), 1);
     output.pos = mul(pos, mul(view[0], proj[0]));
     output.uv = float2(1, -1) * p / 2. + .5;
     return output;
