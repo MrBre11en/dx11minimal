@@ -63,11 +63,11 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     p.y += offsetY - (gy - 1);
 
     float r = 1;
-    float r2 = 2;
+    float r2 = 1;
     p.x = (p.x / gx) * 3.14;
     p.y = (p.y / gx) * 3.14 / 2;
 
-    float4 pos = float4(r * sin(p.x) + r2 * cos(p.y), p.y, r * cos(p.x) + r2 * cos(p.y), 1);
+    float4 pos = float4(r * sin(p.x) * (cos(p.y) + r2), r * sin(p.y) * cos(p.y), r * cos(p.x) * (cos(p.y) + r2), 1);
     output.pos = mul(pos, mul(view[0], proj[0]));
     output.uv = float2(1, -1) * p / 2. + .5;
     return output;
