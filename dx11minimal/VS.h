@@ -57,17 +57,29 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     float2 p = quad[vID % 6];
     uint n = vID / 6;
 
-    uint offsetX = (n % gx) * 2;
+    uint offsetX = (n % (int)gx) * 2;
     uint offsetY = (n / (int)gx) * 2;
     p.x += offsetX - (gx - 1);
     p.y += offsetY - (gy - 1);
 
     float r = 1;
-    float r2 = 1;
-    p.x = (p.x / gx) * 3.14;
-    p.y = (p.y / gx) * 3.14 / 2;
+    float r2 = 2;
+    float knots = 2;
+    p.x = (p.x / (gx - 0.5)) * 3.14;
+    p.y = (p.y / (gy - 0.5)) * 3.14;
 
-    float4 pos = float4(r * sin(p.x) * (cos(p.y) + r2), r * sin(p.y) * cos(p.y), r * cos(p.x) * (cos(p.y) + r2), 1);
+    //float4 pos = float4(p.x, p.y, r * cos(p.x / 2), 1);
+    float4 pos = float4(0, 0, 0, 1);
+
+    /*pos.x = sin(p.x) * (r2 + cos(p.y) * r);
+    pos.y = cos(p.x) * (r2 + cos(p.y) * r);
+    pos.z = sin(p.y) * r;*/
+
+    pos.x = cos(p.x) * r * (r2 + cos(p.y));
+    pos.y = sin(p.x) * r * (r2 + cos(p.y));
+    pos.z = sin(p.y) * r;
+    
+    //pos.xyz *= 0.4;
     output.pos = mul(pos, mul(view[0], proj[0]));
     output.uv = float2(1, -1) * p / 2. + .5;
     return output;

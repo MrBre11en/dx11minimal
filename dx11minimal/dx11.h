@@ -953,6 +953,6 @@ void mainLoop()
 
 	Camera::Camera();
 
-	Draw::NullDrawer(1024, 1);
+	Draw::NullDrawer(600, 1);
 	Draw::Present();
 }
