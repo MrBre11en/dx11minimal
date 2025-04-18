@@ -945,7 +945,7 @@ void mainLoop()
 	Draw::Clear({ 0,0,1,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
-	Rasterizer::Cull(Rasterizer::cullmode::wireframe);
+	Rasterizer::Cull(Rasterizer::cullmode::front);
 	Shaders::vShader(0);
 	Shaders::pShader(0);
 	ConstBuf::ConstToVertex(4);
@@ -953,6 +953,6 @@ void mainLoop()
 
 	Camera::Camera();
 
-	Draw::NullDrawer(600, 1);
+	Draw::NullDrawer(4200, 1);
 	Draw::Present();
 }
