@@ -142,6 +142,12 @@
     <ResourceCompile Include="dx11minimal.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\assets\negx.jpg" />
+    <Image Include="..\assets\negy.jpg" />
+    <Image Include="..\assets\negz.jpg" />
+    <Image Include="..\assets\posx.jpg" />
+    <Image Include="..\assets\posy.jpg" />
+    <Image Include="..\assets\posz.jpg" />
     <Image Include="dx11minimal.ico" />
     <Image Include="small.ico" />
   </ItemGroup>

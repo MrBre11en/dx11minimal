@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Resource Files\cube_map">
+      <UniqueIdentifier>{8f28aeaa-2162-4048-b19d-9de79031eca0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -47,6 +50,24 @@
     </Image>
     <Image Include="dx11minimal.ico">
       <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\assets\negx.jpg">
+      <Filter>Resource Files\cube_map</Filter>
+    </Image>
+    <Image Include="..\assets\negy.jpg">
+      <Filter>Resource Files\cube_map</Filter>
+    </Image>
+    <Image Include="..\assets\negz.jpg">
+      <Filter>Resource Files\cube_map</Filter>
+    </Image>
+    <Image Include="..\assets\posx.jpg">
+      <Filter>Resource Files\cube_map</Filter>
+    </Image>
+    <Image Include="..\assets\posy.jpg">
+      <Filter>Resource Files\cube_map</Filter>
+    </Image>
+    <Image Include="..\assets\posz.jpg">
+      <Filter>Resource Files\cube_map</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
