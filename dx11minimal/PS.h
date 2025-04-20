@@ -136,8 +136,8 @@ float3 normal(float2 uv, VS_OUTPUT input) {
 float4 PS(VS_OUTPUT input) : SV_Target
 {
     //float3 light = float3(0.5, -0.5, -0.5);
-    float3 light = normalize(float3(1, 0, 0));
-    float specular_strength = 10.5;
+    float3 light = normalize(float3(1, -1, -0.2));
+    float specular_strength = 2;
 
     float3 fn = normal(input.uv * float2(30, 200), input);
 
@@ -151,7 +151,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float3 diffuse = saturate(dot(light, fn));
     float3 color = float3(1, 1, 1);
 
-    float spec = pow(max(dot(viewDir, reflectDir), 0), 62);
+    float spec = pow(max(dot(viewDir, reflectDir), 0), 32);
     float3 specular = specular_strength * spec * color;
 
     float pi = 3.141519;
