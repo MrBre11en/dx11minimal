@@ -33,16 +33,12 @@ struct VS_OUTPUT
     float4 vpos : POSITION0;
     float4 wpos : POSITION1;
     float4 vnorm : NORMAL1;
+    float3 tangent : TANGENT1;
+    float3 binormal : BINORMAL1;
     float2 uv : TEXCOORD0;
 };
 
 /////////////////////////////////////////////////////////
-
-//constant function
-const float zoom = 10.;
-const float3 brickColor = float3(0.45, 0.29, 0.23);
-const float3 lineColor = float3(0.845, 0.845, 0.845);
-const float edgePos = 1.5;
 
 //random noise function
 float nrand(float2 n)
@@ -96,7 +92,7 @@ float lum(float2 uv) {
     return 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
 }
 
-float3 normal(float2 uv) {
+float3 normal(float2 uv, VS_OUTPUT input) {
 
     float zoom = 10.;
     float3 brickColor = float3(0.45, 0.29, 0.23);
@@ -115,10 +111,20 @@ float3 normal(float2 uv) {
     //NOTE: Controls the "smoothness"
     //it also mean how hard the edge normal will be
     //higher value mean smoother normal, lower mean sharper transition
-    float s = 1.0;
-    float3 n = normalize(float3(x1 - x0, y1 - y0, s));
 
-       
+    float3x3 tbn =
+    {
+        input.tangent,
+        input.binormal,
+        float3(input.vnorm.xyz)
+    };
+
+    float s = 1.0;
+    float3 nn = normalize(float3(x1 - x0, y1 - y0, s));
+    nn.y *= -1;
+    float3 n = normalize(mul(nn, tbn));
+
+    //return input.vnorm.xyz;
 
     return (n);
 
@@ -129,19 +135,23 @@ float3 normal(float2 uv) {
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    float3 light = float3(0.5, -0.5, -0.5);
-    float specular_strength = 0.5;
+    //float3 light = float3(0.5, -0.5, -0.5);
+    float3 light = normalize(float3(1, 0, 0));
+    float specular_strength = 10.5;
+
+    float3 fn = normal(input.uv * float2(30, 200), input);
+
     //float3 camera_pos = float3(0, 0, -1);
 
     float3 ambient = float3(0.1, 0.1, 0.1);
 
     float3 viewDir = float3(0, 0, -1);
-    float3 reflectDir = reflect(-light, input.vnorm.xyz);
+    float3 reflectDir = reflect(-light, fn);
 
-    float3 diffuse = saturate(dot(light, input.vnorm.xyz));
+    float3 diffuse = saturate(dot(light, fn));
     float3 color = float3(1, 1, 1);
 
-    float spec = pow(max(dot(viewDir, reflectDir), 0), 2);
+    float spec = pow(max(dot(viewDir, reflectDir), 0), 62);
     float3 specular = specular_strength * spec * color;
 
     float pi = 3.141519;
@@ -154,11 +164,11 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     //uv *= zoom;
     //uv.y += iTime;
-    
 
     //get normal with normal(uv)
     //get color with color(uv)
-    return float4(normal(uv * float2(30, 200)), 1.0);
+
+
     return float4((ambient + diffuse + specular)*getcolor(uv*float2(30,200)), 1.0);
 
 }

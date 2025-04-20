@@ -35,6 +35,8 @@ struct VS_OUTPUT
     float4 vpos : POSITION0;
     float4 wpos : POSITION1;
     float4 vnorm : NORMAL1;
+    float3 tangent : TANGENT1;
+    float3 binormal : BINORMAL1;
     float2 uv : TEXCOORD0;
 };
 
@@ -125,6 +127,9 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     pos.xyz *= 0.9;
     output.pos = mul(float4(pos.x, pos.y, pos.z, 1), mul(view[0], proj[0]));
     output.uv = uvOut;
-    output.vnorm = float4(h.x, h.y, h.z, 0);
+    output.tangent = t;
+    output.binormal = b;
+    output.vnorm = float4(h.xyz, 0);
+    
     return output;
 }
