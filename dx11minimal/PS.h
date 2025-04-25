@@ -135,11 +135,12 @@ float3 normal(float2 uv, VS_OUTPUT input) {
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
+    float2 bricks_size = float2(30, 200);
     //float3 light = float3(0.5, -0.5, -0.5);
     float3 light = normalize(float3(1, -1, -0.2));
     float specular_strength = 2;
 
-    float3 fn = normal(input.uv * float2(30, 200), input);
+    float3 fn = normal(input.uv * bricks_size, input);
 
     //float3 camera_pos = float3(0, 0, -1);
 
@@ -169,6 +170,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
     //get color with color(uv)
 
 
-    return float4((ambient + diffuse + specular)*getcolor(uv*float2(30,200)), 1.0);
+    return float4((ambient + diffuse + specular)*getcolor(uv * bricks_size), 1.0);
 
 }
