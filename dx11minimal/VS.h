@@ -107,29 +107,15 @@ float3 torus(float2 p)
     float r = 1;
     float r2 = 2;
     p.x = (p.x / gx) * 3.1415926536;
-    p.y = (p.y / gy) * 3.1415926536 * 2;
+    p.y = (p.y / gy) * 3.1415926536;
 
 
     //float4 pos = float4(p.x, p.y, 0, 1);
     float3 pos = float3(0, 0, 0);
 
-    float3 p1 = calculatePositionOnCurve(-p.y, 2, 3, r2);
-    float3 p2 = calculatePositionOnCurve(-p.y + 0.01, 2, 3, r2);
-
-    float3 t = p2 - p1;
-    float3 norm = p2 + p1;
-    float3 b = cross(t, norm);
-    norm = cross(b, t);
-
-    b = normalize(b);
-    norm = normalize(norm);
-
-    float cx = tube * cos(p.x);
-    float cy = tube * sin(p.x);
-
-    pos.x = p1.x + (cx * norm.x + cy * b.x);
-    pos.y = p1.y + (cx * norm.y + cy * b.y);
-    pos.z = p1.z + (cx * norm.z + cy * b.z);
+    pos.x = cos(p.x) * r * (r2 + cos(p.y));
+    pos.y = sin(p.x) * r * (r2 + cos(p.y));
+    pos.z = -sin(p.y) * r;
 
     pos = rotY(pos, time.x * 0.05);
 
