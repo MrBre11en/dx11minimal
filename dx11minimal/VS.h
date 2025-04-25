@@ -97,7 +97,35 @@ float3 torus_knot(float2 p)
     pos.y = p1.y + (cx * norm.y + cy * b.y);
     pos.z = p1.z + (cx * norm.z + cy * b.z);
 
-    pos = rotY(pos, time.x * 0.1);
+    pos = rotY(pos, time.x * 0.05);
+
+    return pos;
+}
+
+float3 ball(float2 p)
+{
+    float r = 2.5;
+    p.x = (p.x / gx) * 3.1415926536;
+    p.y = (p.y / gy) * 3.1415926536;
+
+
+    float3 pos = float3(cos(p.x) * cos(p.y) * r, sin(p.y) * r, sin(p.x) * cos(p.y) * r);
+
+    //pos = rotY(pos, time.x * 0.05);
+
+    return pos;
+}
+
+float3 plane(float2 p)
+{
+    float r = 2;
+    p.x = (p.x / gx);
+    p.y = (p.y / gy) * 1.5;
+
+
+    float3 pos = float3(p.x * r, p.y * r, p.x * r);
+
+    pos = rotY(pos, time.x * 0.05);
 
     return pos;
 }
@@ -116,20 +144,25 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
 
     float2 uvOut = p.xy / float2(gx, gy) / 2 + .5;
 
-    float3 pos = torus_knot(p);
-    float3 pos1 = torus_knot(p + float2(1 / gx, 0));
-    float3 pos2 = torus_knot(p + float2(0, 1 / gy));
+    float3 pos = ball(p);
+    float3 pos1 = ball(p + float2(1 / gx, 0));
+    float3 pos2 = ball(p + float2(0, 1 / gy));
 
     float3 t = normalize(pos1 - pos);
     float3 b = normalize(pos2 - pos);
     float3 h = cross(t, b);
     
+    h = normalize(pos);
+
     pos.xyz *= 0.9;
-    output.pos = mul(float4(pos.x, pos.y, pos.z, 1), mul(view[0], proj[0]));
+    output.pos = mul(float4(pos.xyz, 1), mul(view[0], proj[0]));
+    output.vpos = mul(output.pos, view[0]);
+    output.wpos = float4(pos.xyz, 1);
     output.uv = uvOut;
     output.tangent = t;
     output.binormal = b;
-    output.vnorm = float4(h.xyz, 0);
+    //output.vnorm = float4(mul(h.xyz, transpose(view[0])).xyz,1);
+    output.vnorm = float4(h.xyz, 1);
     
     return output;
 }

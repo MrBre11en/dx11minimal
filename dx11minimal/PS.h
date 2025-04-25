@@ -118,6 +118,7 @@ float3 normal(float2 uv, VS_OUTPUT input) {
         input.binormal,
         float3(input.vnorm.xyz)
     };
+    //tbn = mul(tbn, transpose(view[0]));
 
     float s = 1.0;
     float3 nn = normalize(float3(x1 - x0, y1 - y0, s));
@@ -132,32 +133,73 @@ float3 normal(float2 uv, VS_OUTPUT input) {
 
 /// ////////////////////////////////////////////////////
 
+#define PI 3.1415926535897932384626433832795
+
+float3 env(float3 v)
+{
+    //float aXZ = atan2(v.y, v.z);
+    //float aXY = atan2(v.y, v.x);
+    //float t = sin(aXZ * 44) + sin(aXY * 44);
+     //   return float3(t, t, t);
+
+    float a = .9 * saturate(1244 * sin((v.z / v.y) * 6) * sin((v.x / v.y) * 6));
+    float blend = saturate(8 - pow(length(v.xz / v.y), .7));
+
+    float va = atan2(v.z, v.x);
+    float x = frac(va / PI / 2 * 64);
+    float y = frac((v.y) * 10. + .5);
+
+    float b = saturate(1 - 2 * length(float2(x, y) - .5));
+
+    a = lerp(a, b, 1 - blend);
+    a = pow(a, 24) * 10;
+    a *= saturate(-v.y);
+    a += saturate(1 - 2 * length(v.xz)) * saturate(v.y) * 44;
+    return float3(a, a, a);
+}
+
+/// ////////////////////////////////////////////////////
+
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
+//float2 brick_uv = float2(30, 200);
     //float3 light = float3(0.5, -0.5, -0.5);
-    float3 light = normalize(float3(1, -1, -0.2));
-    float specular_strength = 2;
+   // float3 light = normalize(float3(1, -1, -0.7));
+   // float specular_strength = 2;
 
-    float3 fn = normal(input.uv * float2(30, 200), input);
+    //float3 fn = normal(input.uv * brick_uv, input);
+    //fn *= float3(1, -1, 1);
 
+    float3 vnorm = float3(input.vnorm.xyz);
+    //vnorm *= float3(1, -1, 1);
     //float3 camera_pos = float3(0, 0, -1);
 
-    float3 ambient = float3(0.1, 0.1, 0.1);
+    //float3 ambient = float3(0.1, 0.1, 0.1);
 
-    float3 viewDir = float3(0, 0, -1);
-    float3 reflectDir = reflect(-light, fn);
+    float3 viewDir = mul(mul(view[0],proj[0]), float4(input.vpos.xyz, 1));;
 
-    float3 diffuse = saturate(dot(light, fn));
+    float3 viewN = mul(view[0], input.vnorm.xyz);
+    //float3 viewDir = mul(input.wpos, view[0]);
+    viewN = input.vnorm.xyz;
+
+    float3 reflectDir = reflect(normalize(viewDir), normalize(viewN));
+
+/*    float3 diffuse = saturate(dot(light, vnorm));
     float3 color = float3(1, 1, 1);
 
-    float spec = pow(max(dot(viewDir, reflectDir), 0), 32);
+    float spec = pow(max(dot(input.vpos.xyz, reflectDir), 0), 32);
     float3 specular = specular_strength * spec * color;
 
     float pi = 3.141519;
     float2 uv = input.uv;
 
     float4 lighting = float4(ambient + diffuse + specular, 1);
+    */
+    float3 rc = env(normalize(reflectDir));
+
+    //return (input.vnorm/2+.5);
+    return float4(rc, 1);
 
     //return lighting;
     //return float4(frac(input.uv.x+time.x*.01), 0, 0, 1);
@@ -169,6 +211,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
     //get color with color(uv)
 
 
-    return float4((ambient + diffuse + specular)*getcolor(uv*float2(30,200)), 1.0);
+    //return float4((ambient + diffuse + specular)*getcolor(uv * brick_uv), 1.0);
 
 }

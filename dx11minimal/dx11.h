@@ -917,7 +917,7 @@ namespace Camera
 
 	void Camera()
 	{
-		float t = timer::frameBeginTime * 0;
+		float t = timer::frameBeginTime * 0.001;
 		float angle = 100;
 		float a = 3.5;
 		XMVECTOR Eye = XMVectorSet(sin(t) * a, 0, cos(t) * a, 0.0f);
@@ -953,6 +953,6 @@ void mainLoop()
 
 	Camera::Camera();
 
-	Draw::NullDrawer(4096, 1);
+	Draw::NullDrawer(4096*4, 1);
 	Draw::Present();
 }
