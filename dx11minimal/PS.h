@@ -92,7 +92,7 @@ float lum(float2 uv) {
     return 0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b;
 }
 
-float3 normal(float2 uv, VS_OUTPUT input) {
+float3 normal(float2 uv, float3x3 tbn) {
 
     float zoom = 10.;
     float3 brickColor = float3(0.45, 0.29, 0.23);
@@ -111,13 +111,6 @@ float3 normal(float2 uv, VS_OUTPUT input) {
     //NOTE: Controls the "smoothness"
     //it also mean how hard the edge normal will be
     //higher value mean smoother normal, lower mean sharper transition
-
-    float3x3 tbn =
-    {
-        input.tangent,
-        input.binormal,
-        float3(input.vnorm.xyz)
-    };
     //tbn = mul(tbn, transpose(view[0]));
 
     float s = 1.0;
@@ -168,8 +161,15 @@ float4 PS(VS_OUTPUT input) : SV_Target
    // float3 light = normalize(float3(1, -1, -0.7));
    // float specular_strength = 2;
 
-    //float3 fn = normal(input.uv * brick_uv, input);
+    //float3 fn = normal(input.uv * brick_uv, tbn);
     //fn *= float3(1, -1, 1);
+
+    float3x3 tbn =
+    {
+        input.tangent,
+        input.binormal,
+        float3(input.vnorm.xyz)
+    };
 
     float3 vnorm = float3(input.vnorm.xyz);
     //vnorm *= float3(1, -1, 1);
@@ -177,13 +177,10 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     //float3 ambient = float3(0.1, 0.1, 0.1);
 
-    float3 viewDir = mul(mul(view[0],proj[0]), float4(input.vpos.xyz, 1));;
-
-    float3 viewN = mul(view[0], input.vnorm.xyz);
+    float3 viewDir = mul(mul(view[0],tbn), input.vpos);
     //float3 viewDir = mul(input.wpos, view[0]);
-    viewN = input.vnorm.xyz;
 
-    float3 reflectDir = reflect(normalize(viewDir), normalize(viewN));
+    float3 reflectDir = normalize(reflect(viewDir, vnorm));
 
 /*    float3 diffuse = saturate(dot(light, vnorm));
     float3 color = float3(1, 1, 1);
@@ -196,7 +193,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     float4 lighting = float4(ambient + diffuse + specular, 1);
     */
-    float3 rc = env(normalize(reflectDir));
+    float3 rc = env(reflectDir);
 
     //return (input.vnorm/2+.5);
     return float4(rc, 1);
