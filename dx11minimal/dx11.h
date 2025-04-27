@@ -927,6 +927,7 @@ namespace Camera
 		ConstBuf::camera.world[0] = XMMatrixIdentity();
 		ConstBuf::camera.view[0] = XMMatrixTranspose(XMMatrixLookAtLH(Eye, At, Up));
 		ConstBuf::camera.proj[0] = XMMatrixTranspose(XMMatrixPerspectiveFovLH(DegreesToRadians(angle), iaspect, 0.01f, 100.0f));
+		//ConstBuf::camera.camPos = XMFLOAT4(XMVectorGetX(Eye), XMVectorGetY(Eye), XMVectorGetZ(Eye), 1);
 
 		ConstBuf::UpdateCamera();
 		ConstBuf::ConstToVertex(3);
