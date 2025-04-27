@@ -155,7 +155,12 @@ float random(float2 st)
 {
     return frac(sin(dot(st.xy,
         float2(12.9898, 78.233)))
-        * 43758.5453123);
+        * 43758.5453123)*2-1;
+}
+
+float FresnelSchlickRoughness(float3 h, float3 v, float f0)
+{
+    return f0 + (1 - f0) * pow(1 - mul(h, v), 5);
 }
 
 /// ////////////////////////////////////////////////////
@@ -163,7 +168,14 @@ float random(float2 st)
 
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-//float2 brick_uv = float2(30, 200);
+    float3x3 tbn =
+    {
+        input.tangent,
+        input.binormal,
+        float3(input.vnorm.xyz)
+    };
+
+    //float2 brick_uv = float2(30, 200);
     //float3 light = float3(0.5, -0.5, -0.5);
    // float3 light = normalize(float3(1, -1, -0.7));
    // float specular_strength = 2;
@@ -171,7 +183,8 @@ float4 PS(VS_OUTPUT input) : SV_Target
     //float3 fn = normal(input.uv * brick_uv, tbn);
     //fn *= float3(1, -1, 1);
 
-    float roughness = 0.5;
+    float roughness = 0;
+    float metalness = 1;
 
     float3 vnorm = float3(input.vnorm.xyz);
     //vnorm *= float3(1, -1, 1);
@@ -196,14 +209,22 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     float4 lighting = float4(ambient + diffuse + specular, 1);
     */
-    float3 rc = env(reflectDir);
+    float3 rc = 0;//env(reflectDir);
 
-    for (int i = 0; i < roughness * 255; i++)
+    float reflectivity = FresnelSchlickRoughness(max(dot(vnorm, viewDir), 0.0), 1 - metalness);
+    roughness = pow(roughness, 2);
+    for (int i = 0; i < 1000; i++)
     {
-        reflectDir = normalize(reflect(viewDir, vnorm + random(input.uv * i)));
-        rc = rc + env(reflectDir);
+        float rx = random(input.uv * i) * (roughness + reflectivity);
+        float ry = random(input.uv * i * 5) * (roughness + reflectivity);
+        float rz = random(input.uv * i*7);
+
+        float3 rv = normalize(float3(rx, ry, rz));
+        float3 newvnorm = normalize(mul(rv, tbn));
+        reflectDir = normalize(reflect(viewDir, newvnorm));
+        rc += env(reflectDir);
     }
-    rc /= roughness * 255 + 1;
+    rc /= 1000. + 1;
 
     //return (input.vnorm/2+.5);
     return float4(rc, 1);
@@ -213,9 +234,6 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     //uv *= zoom;
     //uv.y += iTime;
-
-    //get normal with normal(uv)
-    //get color with color(uv)
 
 
     //return float4((ambient + diffuse + specular)*getcolor(uv * brick_uv), 1.0);
