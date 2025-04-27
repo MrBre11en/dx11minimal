@@ -97,7 +97,7 @@ float3 torus_knot(float2 p)
     pos.y = p1.y + (cx * norm.y + cy * b.y);
     pos.z = p1.z + (cx * norm.z + cy * b.z);
 
-    pos = rotY(pos, time.x * 0.05);
+    //pos = rotY(pos, time.x * 0.05);
 
     return pos;
 }

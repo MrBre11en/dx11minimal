@@ -151,6 +151,13 @@ float3 env(float3 v)
     return float3(a, a, a);
 }
 
+float random(float2 st)
+{
+    return frac(sin(dot(st.xy,
+        float2(12.9898, 78.233)))
+        * 43758.5453123);
+}
+
 /// ////////////////////////////////////////////////////
 
 
@@ -164,12 +171,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
     //float3 fn = normal(input.uv * brick_uv, tbn);
     //fn *= float3(1, -1, 1);
 
-    float3x3 tbn =
-    {
-        input.tangent,
-        input.binormal,
-        float3(input.vnorm.xyz)
-    };
+    float roughness = 0.5;
 
     float3 vnorm = float3(input.vnorm.xyz);
     //vnorm *= float3(1, -1, 1);
@@ -177,10 +179,11 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     //float3 ambient = float3(0.1, 0.1, 0.1);
 
-    float3 viewDir = input.wpos.xyz - camPos;
+    float3 eye = -(view[0]._m02_m12_m22) * view[0]._m32;
+    float3 viewDir = input.wpos.xyz - eye;
     //float3 viewDir = mul(input.wpos, view[0]);
 
-    float3 reflectDir = normalize(reflect(-viewDir, vnorm));
+    float3 reflectDir = normalize(reflect(viewDir, vnorm));
 
 /*    float3 diffuse = saturate(dot(light, vnorm));
     float3 color = float3(1, 1, 1);
@@ -194,6 +197,13 @@ float4 PS(VS_OUTPUT input) : SV_Target
     float4 lighting = float4(ambient + diffuse + specular, 1);
     */
     float3 rc = env(reflectDir);
+
+    for (int i = 0; i < roughness * 255; i++)
+    {
+        reflectDir = normalize(reflect(viewDir, vnorm + random(input.uv * i)));
+        rc = rc + env(reflectDir);
+    }
+    rc /= roughness * 255 + 1;
 
     //return (input.vnorm/2+.5);
     return float4(rc, 1);
