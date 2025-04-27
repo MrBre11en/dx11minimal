@@ -177,7 +177,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     //float3 ambient = float3(0.1, 0.1, 0.1);
 
-    float3 viewDir = mul(mul(view[0],tbn), input.vpos);
+    float3 viewDir = input.wpos.xyz - view[0]._m00_m10_m20;
     //float3 viewDir = mul(input.wpos, view[0]);
 
     float3 reflectDir = normalize(reflect(viewDir, vnorm));
