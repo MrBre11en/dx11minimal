@@ -157,10 +157,17 @@ float random(float2 st)
         float2(12.9898, 78.233)))
         * 43758.5453123)*2-1;
 }
-
-float FresnelSchlickRoughness(float3 h, float3 v, float f0)
+float random_unsigned(float2 st)
 {
-    return f0 + (1 - f0) * pow(1 - mul(h, v), 5);
+    return frac(sin(dot(st.xy,
+        float2(12.9898, 78.233)))
+        * 43758.5453123);
+}
+
+float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+{
+    float k = 1 - roughness;
+    return F0 + (max(float3(k, k, k), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 /// ////////////////////////////////////////////////////
@@ -185,6 +192,7 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     float roughness = 0;
     float metalness = 1;
+    float3 albedo = float3(0.1, 0.1, 0.1);
 
     float3 vnorm = float3(input.vnorm.xyz);
     //vnorm *= float3(1, -1, 1);
@@ -209,15 +217,18 @@ float4 PS(VS_OUTPUT input) : SV_Target
 
     float4 lighting = float4(ambient + diffuse + specular, 1);
     */
-    float3 rc = 0;//env(reflectDir);
-
-    float reflectivity = FresnelSchlickRoughness(max(dot(vnorm, viewDir), 0.0), 1 - metalness);
     roughness = pow(roughness, 2);
+
+    float3 f0 = float3(0.04, 0.04, 0.04);
+    float3 kD = 1 - fresnelSchlickRoughness(max(dot(vnorm, viewDir), 0.0), f0, roughness);
+    kD *= (1 - metalness) * albedo;
+
+    float3 rc = 0;//env(reflectDir);
     for (int i = 0; i < 1000; i++)
     {
-        float rx = random(input.uv * i) * (roughness + reflectivity);
-        float ry = random(input.uv * i * 5) * (roughness + reflectivity);
-        float rz = random(input.uv * i*7);
+        float rx = random(input.uv * i) * (roughness + kD);
+        float ry = random(input.uv * i * 5) * (roughness + kD);
+        float rz = random_unsigned(input.uv * i*7);
 
         float3 rv = normalize(float3(rx, ry, rz));
         float3 newvnorm = normalize(mul(rv, tbn));
