@@ -14,6 +14,7 @@ cbuffer camera : register(b3)
     float4x4 world[2];
     float4x4 view[2];
     float4x4 proj[2];
+    float4 camPos;
 };
 
 cbuffer drawMat : register(b2)
@@ -42,14 +43,32 @@ struct VS_OUTPUT
 
 float3 rotY(float3 pos, float a)
 {
-    float3x3 m =
-    {
+    float3x3 m = float3x3(
         cos(a), 0, sin(a),
         0, 1, 0,
         -sin(a), 0, cos(a)
-    };
-    pos = mul(pos, m);
-    return pos;
+    );
+    return mul(pos, m);
+}
+
+float3 rotX(float3 pos, float a)
+{
+    float3x3 m = float3x3(
+        1, 0, 0,
+        0, cos(a), -sin(a),
+        0, sin(a), cos(a)
+    );
+    return mul(pos, m);
+}
+
+float3 rotZ(float3 pos, float a)
+{
+    float3x3 m = float3x3(
+        cos(a), sin(a), 0,
+        -sin(a), cos(a), 0,
+        0, 0, 1
+    );
+    return mul(pos, m);
 }
 
 float3 calculatePositionOnCurve(float u, float p, float q, float radius) {
@@ -111,7 +130,12 @@ float3 ball(float2 p)
 
     float3 pos = float3(cos(p.x) * cos(p.y) * r, sin(p.y) * r, sin(p.x) * cos(p.y) * r);
 
-    //pos = rotY(pos, time.x * 0.05);
+
+    //pos = clamp(pos, -2 ,2);
+
+    //pos = rotZ(pos, time.x * 0.05);
+    //pos = rotX(pos, time.x * 0.05);
+
 
     return pos;
 }
@@ -152,8 +176,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     float3 b = normalize(pos2 - pos);
     float3 h = cross(t, b);
     
-    h = normalize(pos);
-
+   
     pos.xyz *= 0.9;
     output.pos = mul(float4(pos.xyz, 1), mul(view[0], proj[0]));
     output.vpos = mul(output.pos, view[0]);
@@ -162,7 +185,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     output.tangent = t;
     output.binormal = b;
     //output.vnorm = float4(mul(h.xyz, transpose(view[0])).xyz,1);
-    output.vnorm = float4(h.xyz, 1);
+    output.vnorm = float4(h, 1);
     
     return output;
 }
