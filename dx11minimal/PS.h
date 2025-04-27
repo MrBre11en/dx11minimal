@@ -164,10 +164,9 @@ float random_unsigned(float2 st)
         * 43758.5453123);
 }
 
-float3 fresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
+float fresnelSchlickRoughness(float cosTheta, float f0, float roughness)
 {
-    float k = 1 - roughness;
-    return F0 + (max(float3(k, k, k), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+    return f0 + (max(1 - roughness, f0) - f0) * pow(1.0 - cosTheta, 5.0);
 }
 
 /// ////////////////////////////////////////////////////
@@ -191,8 +190,8 @@ float4 PS(VS_OUTPUT input) : SV_Target
     //fn *= float3(1, -1, 1);
 
     float roughness = 0;
-    float metalness = 1;
-    float3 albedo = float3(0.1, 0.1, 0.1);
+    float metalness = 0.5;
+    float albedo = 0.1;
 
     float3 vnorm = float3(input.vnorm.xyz);
     //vnorm *= float3(1, -1, 1);
@@ -219,8 +218,8 @@ float4 PS(VS_OUTPUT input) : SV_Target
     */
     roughness = pow(roughness, 2);
 
-    float3 f0 = float3(0.04, 0.04, 0.04);
-    float3 kD = 1 - fresnelSchlickRoughness(max(dot(vnorm, viewDir), 0.0), f0, roughness);
+    float f0 = 0.04;
+    float kD = 1 - fresnelSchlickRoughness(max(dot(vnorm, viewDir), 0.0), f0, roughness);
     kD *= (1 - metalness) * albedo;
 
     float3 rc = 0;//env(reflectDir);
