@@ -268,7 +268,7 @@ float3 normal(float2 uv, float3x3 tbn) {
 
     //edge normal, it mean it's the difference between a brick and the white edge
     //higher value mean bigger edge
-    float r = 0.03;
+    float r = 0.06;
 
     float x0 = lum(float2(uv.x + r, uv.y));
     float x1 = lum(float2(uv.x - r, uv.y));
@@ -282,7 +282,6 @@ float3 normal(float2 uv, float3x3 tbn) {
 
     float s = 1.0;
     float3 nn = normalize(float3(x1 - x0, y1 - y0, s));
-    nn.y *= -1;
     float3 n = normalize(mul(nn, tbn));
 
     //return input.vnorm.xyz;
@@ -318,6 +317,46 @@ float3 env(float3 v)
     return float3(a, a, a);
 }
 
+float3 CosineSampleHemisphere(float2 Xi) {
+    float phi = 2.0 * PI * Xi.x;
+    float cosTheta = sqrt(1.0 - Xi.y);
+    float sinTheta = sqrt(Xi.y);
+
+    return float3(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+}
+
+float2 Hammersley(uint i, uint N) {
+    uint bits = (i << 16u) | (i >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    float rdi = float(bits) * 2.3283064365386963e-10;
+    return float2(float(i) / float(N), rdi);
+}
+
+float3 SampleDiffuseEnv(float3 N, float3 tangent, float3 binormal)
+{
+    const uint numSamples = 64;
+    float3 irradiance = 0;
+
+    for (uint i = 0; i < numSamples; i++) {
+        float2 Xi = Hammersley(i, numSamples);
+        float3 localSample = CosineSampleHemisphere(Xi);
+
+
+        float3 worldSample = normalize(
+            tangent * localSample.x +
+            binormal * localSample.y +
+            N * localSample.z
+        );
+
+        irradiance += env(worldSample);
+    }
+
+    return irradiance / numSamples;
+}
+
 float random(float2 st)
 {
     return frac(sin(dot(st.xy,
@@ -336,7 +375,24 @@ float fresnelSchlickRoughness(float cosTheta, float f0, float roughness)
     return f0 + (max(1 - roughness, f0) - f0) * pow(1.0 - cosTheta, 5.0);
 }
 
-/// ////////////////////////////////////////////////////
+// GGX importance sampling (возвращает полусферическое направление с учетом roughness)
+float3 GGXSample(float2 Xi, float roughness, float3 N, float3 tangent, float3 binormal) {
+    float a = roughness * roughness;
+
+    // Сферические координаты в касательном пространстве
+    float phi = 2.0 * PI * Xi.x;
+    float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (a * a - 1.0) * Xi.y));
+    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+
+    // Вектор в касательном пространстве
+    float3 H;
+    H.x = sinTheta * cos(phi);
+    H.y = sinTheta * sin(phi);
+    H.z = cosTheta;
+
+    // Переход в мировые координаты через TBN-базис
+    return normalize(tangent * H.x + binormal * H.y + N * H.z);
+}
 
 float3 ACESFilm(float3 x)
 {
@@ -348,83 +404,93 @@ float3 ACESFilm(float3 x)
     return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
+/// ////////////////////////////////////////////////////
+
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    float3 N = float3(input.normal.xyz);
-    float3x3 tbn =
-    {
-        input.tangent.xyz,
-        input.binormal.xyz,
-        float3(input.normal.xyz)
-    };
+    float3 vnorm = normalize(input.normal.xyz);
+    float3 tangent = normalize(input.tangent.xyz);
+    float3 binormal = normalize(input.binormal.xyz);
+    float3x3 tbn = float3x3(tangent, binormal, vnorm);
 
-    //float2 brick_uv = float2(30, 200);
+    float2 brick_uv = float2(10, 10);
     //float3 light = float3(0.5, -0.5, -0.5);
    // float3 light = normalize(float3(1, -1, -0.7));
    // float specular_strength = 2;
 
-    //float3 fn = normal(input.uv * brick_uv, tbn);
-    //fn *= float3(1, -1, 1);
+    float3 fn = normal(input.uv * brick_uv, tbn);
 
-    float3 albedo = input.albedo.xyz;
+    float3 albedo = input.albedo.xyz * getcolor(input.uv * brick_uv);
     float metallic = input.metallic.x;
     float roughness = input.roughness.x;
 
-    float3 vnorm = float3(input.normal.xyz);
     //vnorm *= float3(1, -1, 1);
     //float3 camera_pos = float3(0, 0, -1);
     //float cosTheta = dot(lightDir, N);
     //float3 ambient = float3(0.1, 0.1, 0.1);
 
     float3 eye = -(view[0]._m02_m12_m22) * view[0]._m32;
-    float3 viewDir = input.wpos.xyz - eye;
-    //float3 viewDir = mul(input.wpos, view[0]);
+    float3 viewDir = normalize(eye - input.wpos.xyz);
 
-    float3 reflectDir = normalize(reflect(viewDir, vnorm));
+    //float3 reflectDir = normalize(reflect(viewDir, fn));
 
-    /*    float3 diffuse = saturate(dot(light, vnorm));
-        float3 color = float3(1, 1, 1);
+    /*
+    float3 diffuse = saturate(dot(light, fn));
+    float3 color = float3(1, 1, 1);
 
-        float spec = pow(max(dot(input.vpos.xyz, reflectDir), 0), 32);
-        float3 specular = specular_strength * spec * color;
+    float spec = pow(max(dot(input.vpos.xyz, reflectDir), 0), 32);
+    float3 specular = specular_strength * spec * color;
 
-        float pi = 3.141519;
-        float2 uv = input.uv;
+    float pi = 3.141519;
+    float2 uv = input.uv;
 
-        float4 lighting = float4(ambient + diffuse + specular, 1);
-        */
-        roughness = pow(roughness, 2);
+    float4 lighting = float4(ambient + diffuse + specular, 1);
+    */
 
-        float f0 = 0.04;
-        float3 F0 = lerp(f0, albedo, metallic);
-        float kD = 1 - fresnelSchlickRoughness(max(dot(vnorm, viewDir), 0.0), F0, roughness);
-        kD *= (1 - metallic) * albedo;
+    //roughness = pow(roughness, 2);
+    float3 baseF0 = float3(0.04, 0.04, 0.04);
+    float3 F0 = lerp(baseF0, albedo, metallic);
 
-        float3 rc = 0;//env(reflectDir);
-        for (int i = 0; i < 1000; i++)
+    // диффузное освещение
+    float3 diffuseIrradiance = SampleDiffuseEnv(fn, tangent, binormal);
+
+    // отражения
+    const uint SAMPLE_COUNT = 128;
+    float3 specularReflection = float3(0, 0, 0);
+
+    for (uint i = 0u; i < SAMPLE_COUNT; i++)
+    {
+        float2 Xi = Hammersley(i, SAMPLE_COUNT);
+        float3 H = GGXSample(Xi, roughness, fn, tangent, binormal);
+        float3 L = normalize(2.0 * dot(viewDir, H) * H - viewDir);
+
+        if (dot(fn, L) > 0.0)
         {
-            float rx = random(input.uv * i) * (roughness + kD);
-            float ry = random(input.uv * i * 5) * (roughness + kD);
-            float rz = random_unsigned(input.uv * i * 7);
+            float3 halfway = normalize(viewDir + L);
+            float NdotL = max(dot(fn, L), 0.0);
+            float VdotH = max(dot(viewDir, halfway), 0.0);
 
-            float3 rv = normalize(float3(rx, ry, rz));
-            float3 newvnorm = normalize(mul(rv, tbn));
-            reflectDir = normalize(reflect(viewDir, newvnorm));
-            rc += env(reflectDir);
+            // Вычисляем Fresnel-Schlick
+            float3 fresnel = F0 + (1.0 - F0) * pow(1.0 - VdotH, 5.0);
+                    
+            specularReflection += env(L) * fresnel * NdotL;
         }
-        rc /= 1000. + 1;
-        //return (input.vnorm/2+.5);
-        return float4(rc, 1);
+    }
 
-        //return lighting;
-        //return float4(frac(input.uv.x+time.x*.01), 0, 0, 1);
+    specularReflection /= float(SAMPLE_COUNT);
 
-        //uv *= zoom;
-        //uv.y += iTime;
+    // Энергетическая консервация: баланс между отражённым и рассеянным светом
+    float3 kS = F0;
+    float3 kD = (1.0 - kS) * (1.0 - metallic);
 
+    // Финальный цвет
+    float3 diffuse = kD * albedo * (1.0 / PI) * diffuseIrradiance;
+    float3 finalColor = diffuse + specularReflection;
 
-        //return float4((ambient + diffuse + specular)*getcolor(uv * brick_uv), 1.0);
-
+    finalColor = ACESFilm(finalColor);
+    finalColor = pow(finalColor, 1.0 / 2.2);
+    return float4(finalColor, 1.0);
+    //return (input.vnorm/2+.5);
 }
 
 // return float4(st,0, 1.0);

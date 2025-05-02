@@ -230,7 +230,7 @@ namespace Textures
 		}
 		else
 		{
-			for (unsigned int m = 0; m < tdesc.MipLevels; m++)
+			for (unsigned int m = 0; m <= tdesc.MipLevels; m++)
 			{
 				renderTargetViewDesc.Texture2D.MipSlice = m;
 				HRESULT hr = device->CreateRenderTargetView(Texture[i].pTexture, &renderTargetViewDesc, &Texture[i].RenderTargetView[m][0]);
@@ -450,7 +450,7 @@ namespace Shaders {
 		HRESULT hr;
 
 		hr = D3DCompileFromFile(name, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PS", "ps_4_1", NULL, NULL, &PS[i].pBlob, &pErrorBlob);
-		CompilerLog(name, hr, "vertex shader compiled: ");
+		CompilerLog(name, hr, "pixel shader compiled: ");
 
 		if (hr == S_OK)
 		{
@@ -613,6 +613,7 @@ namespace ConstBuf
 		Create(buffer[4], sizeof(frame));
 		Create(buffer[5], sizeof(global));
 		Create(buffer[6], sizeof(ObjectParams));
+		Create(buffer[7], sizeof(drawerP));
 	}
 
 	template <typename T>
@@ -862,6 +863,8 @@ void Dx11Init()
 
 	//main RT
 	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
+	//rt
+	Textures::Create(1, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
 }
 
 
@@ -945,7 +948,7 @@ void mainLoop()
 	InputAssembler::IA(InputAssembler::topology::triList);
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
 
-	Textures::RenderTarget(0, 0);
+	Textures::RenderTarget(1, 0);
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
@@ -962,5 +965,12 @@ void mainLoop()
 	ConstBuf::drawerV[0] = grid;
 	ConstBuf::drawerV[1] = grid;
 	Draw::NullDrawer(count * 6, 15);
+	//--------------------------------
+
+	Textures::RenderTarget(0, 0);
+
+	context->PSSetShaderResources(0, 1, &Textures::Texture[1].TextureResView);
+
+	//--------------------------
 	Draw::Present();
 }

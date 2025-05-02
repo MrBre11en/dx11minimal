@@ -193,7 +193,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     }
     else if (t == 5.0 && s == 1.0) {
         // Резина
-        albedo = float3(0.05, 0.05, 0.05);
+        albedo = float3(0.015, 0.015, 0.015);
         metallic = 0.0;
         roughness = 0.9;
     }
@@ -206,7 +206,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
     else if (s == 3.0) {
         // Для третьего ряда - градация metallic
         albedo = float3(0.8, 0.8, 0.8);
-        metallic = 1 / t; // От 1.0 до 0.2
+        metallic = t % 2; // От 1.0 до 0.2
         roughness = 0.5;
     }
     else {
