@@ -479,6 +479,8 @@ namespace Shaders {
 		CreatePS(1, nameToPatchLPCWSTR("PPPS.h"));
 
 		CreatePS(2, nameToPatchLPCWSTR("KawaseBlur.h"));
+		CreatePS(3, nameToPatchLPCWSTR("ChromaticAberration.h"));
+		CreatePS(4, nameToPatchLPCWSTR("CelShader.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -878,8 +880,10 @@ void Dx11Init()
 
 	//main RT
 	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
-	//rt
+	//rt1
 	Textures::Create(1, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
+	//rt2
+	Textures::Create(2, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
 }
 
 
@@ -903,8 +907,16 @@ namespace Draw
 		context->ClearDepthStencilView(Textures::Texture[Textures::currentRT].DepthStencilView[0], D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	void SwitchRenderTexture() {
-		context->PSSetShaderResources(0, 1, &Textures::Texture[(Textures::currentRT + 1) % 2].TextureResView);
+	void SwitchRenderTextures() {
+		int index = 3 - Textures::currentRT;
+		Textures::RenderTarget(index, 0);
+		context->PSSetShaderResources(0, 1, &Textures::Texture[3 - index].TextureResView);
+	}
+
+	void OutputRenderTextures() {
+		int index = Textures::currentRT;
+		Textures::RenderTarget(0, 0);
+		context->PSSetShaderResources(0, 1, &Textures::Texture[index].TextureResView);
 	}
 
 	void NullDrawer(int quadCount, unsigned int instances)
@@ -968,6 +980,7 @@ void mainLoop()
 	Blend::Blending(Blend::blendmode::alpha, Blend::blendop::add);
 
 	Textures::RenderTarget(1, 0);
+
 	Draw::Clear({ 0,0,0,0 });
 	Draw::ClearDepth();
 	Depth::Depth(Depth::depthmode::on);
@@ -987,9 +1000,7 @@ void mainLoop()
 	Textures::CreateMipMap();
 	//--------------------------------
 
-	Textures::RenderTarget(0, 0);
-
-
+	Draw::SwitchRenderTextures();
 
 	Blend::Blending(Blend::blendmode::off, Blend::blendop::add);
 	Depth::Depth(Depth::depthmode::off);
@@ -997,12 +1008,10 @@ void mainLoop()
 
 	Shaders::vShader(1);
 	Shaders::pShader(1);
-
-	Draw::SwitchRenderTexture();
 	Draw::NullDrawer(1, 1);
 
-	Shaders::pShader(2);
-	Draw::SwitchRenderTexture();
+	Draw::OutputRenderTextures();
+	Shaders::pShader(4);
 	Draw::NullDrawer(1, 1);
 
 	//--------------------------
