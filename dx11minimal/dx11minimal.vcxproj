@@ -132,6 +132,8 @@
     <ClInclude Include="framework.h" />
     <None Include="..\..\..\..\Downloads\cubemap.hdr" />
     <None Include="PS.h" />
+    <ClInclude Include="PPPS.h" />
+    <ClInclude Include="PPVS.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <None Include="VS.h" />
