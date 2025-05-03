@@ -1,3 +1,9 @@
+struct VS_OUTPUT
+{
+    float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD0;
+};
+
 VS_OUTPUT VS(uint vID : SV_VertexID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
@@ -8,13 +14,7 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
     };
 
     float2 p = quad[vID % 6];
-    int qID = vID / 6;
-    int vg = (int)(gx * gy);
-    int localID = qID % vg;
-    int faceID = qID / vg;
-
-    int px = localID % (int)gx;
-    int py = localID / (int)gx;
+    float2 pos = quad[p];
 
     float2 uv = float2(px + 0.5 + p.x * 0.5, py + 0.5 + p.y * 0.5) / float2(gx, gy);
 
