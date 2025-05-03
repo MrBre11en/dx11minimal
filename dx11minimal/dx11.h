@@ -407,6 +407,8 @@ namespace Shaders {
 	VertexShader VS[255];
 	PixelShader PS[255];
 
+	PixelShader PPPS[254];
+
 	ID3DBlob* pErrorBlob;
 
 	wchar_t shaderPathW[MAX_PATH];
@@ -627,7 +629,6 @@ namespace ConstBuf
 		Create(buffer[4], sizeof(frame));
 		Create(buffer[5], sizeof(global));
 		Create(buffer[6], sizeof(ObjectParams));
-		Create(buffer[7], sizeof(drawerP));
 	}
 
 	template <typename T>
@@ -902,6 +903,10 @@ namespace Draw
 		context->ClearDepthStencilView(Textures::Texture[Textures::currentRT].DepthStencilView[0], D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
+	void SwitchRenderTexture() {
+		context->PSSetShaderResources(0, 1, &Textures::Texture[(Textures::currentRT + 1) % 2].TextureResView);
+	}
+
 	void NullDrawer(int quadCount, unsigned int instances)
 	{
 		ConstBuf::Update(0, ConstBuf::drawerV);
@@ -991,13 +996,14 @@ void mainLoop()
 	Rasterizer::Cull(Rasterizer::cullmode::off);
 
 	Shaders::vShader(1);
-//	Shaders::pShader(1);
+	Shaders::pShader(1);
 
-	Shaders::pShader(2);
-	context->PSSetShaderResources(0, 1, &Textures::Texture[1].TextureResView);
+	Draw::SwitchRenderTexture();
 	Draw::NullDrawer(1, 1);
 
-//	Shaders::pShader(3);
+	Shaders::pShader(2);
+	Draw::SwitchRenderTexture();
+	Draw::NullDrawer(1, 1);
 
 	//--------------------------
 	Draw::Present();

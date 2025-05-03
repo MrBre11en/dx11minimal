@@ -20,8 +20,8 @@ float4 PS(VS_OUTPUT input) : SV_Target
     uint width, height;
     float2 texelSize = float2(1, 1) / float2(width, height);
 
-    int iterations = 4;
-    float offsetScale = 0.002;
+    int iterations = 2;
+    float offsetScale = 0.004;
 
     float4 color = float4(0, 0, 0, 0);
     for (int i = 0; i < iterations; i++)
