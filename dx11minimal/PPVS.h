@@ -13,12 +13,12 @@ VS_OUTPUT VS(uint vID : SV_VertexID)
         float2(1, -1), float2(1, 1), float2(-1, 1)
     };
 
-    float2 p = quad[vID % 6];
-    float2 pos = quad[p];
+    float2 p = quad[vID];
 
-    float2 uv = float2(px + 0.5 + p.x * 0.5, py + 0.5 + p.y * 0.5) / float2(gx, gy);
+    float2 uv = float2(0.5 + p.x * 0.5, 0.5 - p.y * 0.5);
 
-    output.pos = mul(float4(pos, 1.0), mul(view[0], proj[0]));
+    output.pos = float4(p.xy, 0, 1);
     output.uv = uv;
+
     return output;
 }

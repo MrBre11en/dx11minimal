@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="PPShaders">
+      <UniqueIdentifier>{768a4580-8dd4-439f-94a5-413abc1e2438}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -35,6 +38,9 @@
     </ClInclude>
     <ClInclude Include="PPVS.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="KawaseBlur.h">
+      <Filter>PPShaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

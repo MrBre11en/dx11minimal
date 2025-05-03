@@ -394,6 +394,16 @@ namespace Shaders {
 		ID3DBlob* pBlob;
 	} PixelShader;
 
+	typedef struct {
+		ID3D11VertexShader* pShader;
+		ID3DBlob* pBlob;
+	} PostProcessVertexShader;
+
+	typedef struct {
+		ID3D11PixelShader* pShader;
+		ID3DBlob* pBlob;
+	} PostProcessPixelShader;
+
 	VertexShader VS[255];
 	PixelShader PS[255];
 
@@ -463,6 +473,10 @@ namespace Shaders {
 	{
 		CreateVS(0, nameToPatchLPCWSTR("VS.h"));
 		CreatePS(0, nameToPatchLPCWSTR("PS.h"));
+		CreateVS(1, nameToPatchLPCWSTR("PPVS.h"));
+		CreatePS(1, nameToPatchLPCWSTR("PPPS.h"));
+
+		CreatePS(2, nameToPatchLPCWSTR("KawaseBlur.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -965,11 +979,25 @@ void mainLoop()
 	ConstBuf::drawerV[0] = grid;
 	ConstBuf::drawerV[1] = grid;
 	Draw::NullDrawer(count * 6, 15);
+	Textures::CreateMipMap();
 	//--------------------------------
 
 	Textures::RenderTarget(0, 0);
 
+
+
+	Blend::Blending(Blend::blendmode::off, Blend::blendop::add);
+	Depth::Depth(Depth::depthmode::off);
+	Rasterizer::Cull(Rasterizer::cullmode::off);
+
+	Shaders::vShader(1);
+//	Shaders::pShader(1);
+
+	Shaders::pShader(2);
 	context->PSSetShaderResources(0, 1, &Textures::Texture[1].TextureResView);
+	Draw::NullDrawer(1, 1);
+
+//	Shaders::pShader(3);
 
 	//--------------------------
 	Draw::Present();

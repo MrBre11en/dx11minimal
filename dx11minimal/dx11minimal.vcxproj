@@ -127,13 +127,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="KawaseBlur.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="dx11.h" />
     <ClInclude Include="dx11minimal.h" />
     <ClInclude Include="framework.h" />
     <None Include="..\..\..\..\Downloads\cubemap.hdr" />
     <None Include="PS.h" />
-    <ClInclude Include="PPPS.h" />
-    <ClInclude Include="PPVS.h" />
+    <ClInclude Include="PPPS.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PPVS.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <None Include="VS.h" />
