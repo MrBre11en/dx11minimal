@@ -1010,6 +1010,10 @@ void mainLoop()
 	Shaders::pShader(1);
 	Draw::NullDrawer(1, 1);
 
+	Draw::SwitchRenderTextures();
+	Shaders::pShader(2);
+	Draw::NullDrawer(1, 1);
+
 	Draw::OutputRenderTextures();
 	Shaders::pShader(4);
 	Draw::NullDrawer(1, 1);
