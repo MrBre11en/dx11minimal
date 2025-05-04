@@ -913,7 +913,7 @@ float DegreesToRadians(float degrees)
 }
 
 namespace Camera
-{
+{ 
 
 	void Camera()
 	{
