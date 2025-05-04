@@ -42,6 +42,15 @@
     <ClInclude Include="KawaseBlur.h">
       <Filter>PPShaders</Filter>
     </ClInclude>
+    <ClInclude Include="ChromaticAberration.h">
+      <Filter>PPShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="VHSShader.h">
+      <Filter>PPShaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Saturation.h">
+      <Filter>PPShaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dx11minimal.cpp">

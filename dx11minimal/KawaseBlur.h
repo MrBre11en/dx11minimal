@@ -15,9 +15,10 @@ static const float2 directions[4] =
     float2(-1, -1)
 };
 
+static const int iterations = 2;
+
 float4 PS(VS_OUTPUT input) : SV_Target
 {
-    int iterations = 2;
     float offsetScale = 0.004;
 
     uint width, height;

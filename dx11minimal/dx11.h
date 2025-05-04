@@ -480,7 +480,8 @@ namespace Shaders {
 
 		CreatePS(2, nameToPatchLPCWSTR("KawaseBlur.h"));
 		CreatePS(3, nameToPatchLPCWSTR("ChromaticAberration.h"));
-		CreatePS(4, nameToPatchLPCWSTR("CelShader.h"));
+		CreatePS(4, nameToPatchLPCWSTR("VHSShader.h"));
+		CreatePS(5, nameToPatchLPCWSTR("Saturation.h"));
 	}
 
 	void vShader(unsigned int n)
@@ -1010,12 +1011,8 @@ void mainLoop()
 	Shaders::pShader(1);
 	Draw::NullDrawer(1, 1);
 
-	Draw::SwitchRenderTextures();
-	Shaders::pShader(2);
-	Draw::NullDrawer(1, 1);
-
 	Draw::OutputRenderTextures();
-	Shaders::pShader(4);
+	Shaders::pShader(3);
 	Draw::NullDrawer(1, 1);
 
 	//--------------------------
