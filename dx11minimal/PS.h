@@ -191,7 +191,7 @@ cbuffer params : register(b1)
     float r, g, b;
 };
 
-struct VS_OUTPUT
+struct PS_INPUT
 {
     float4 pos : SV_POSITION;
     float4 vpos : POSITION0;
@@ -406,7 +406,7 @@ float3 ACESFilm(float3 x)
 
 /// ////////////////////////////////////////////////////
 
-float4 PS(VS_OUTPUT input) : SV_Target
+float4 PS(PS_INPUT input) : SV_Target
 {
     float3 vnorm = normalize(input.normal.xyz);
     float3 tangent = normalize(input.tangent.xyz);

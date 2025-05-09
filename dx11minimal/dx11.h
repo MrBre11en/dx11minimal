@@ -563,12 +563,64 @@ namespace Sampler
 
 }
 
+namespace VertexBuf
+{
+	ID3D11Buffer* buffer[8];
+
+	struct vertexInfo
+	{
+		XMFLOAT3 pos;
+		XMFLOAT3 color;
+	};
+
+	int roundUp(int n, int r)
+	{
+		return n - (n % r) + r;
+	}
+
+	void Create(ID3D11Buffer*& buf, vertexInfo mesh[])
+	{
+		D3D11_BUFFER_DESC bd;
+		bd.Usage = D3D11_USAGE_DEFAULT;
+		bd.ByteWidth = roundUp(sizeof(mesh) * 3, 16);
+		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bd.CPUAccessFlags = 0;
+		bd.MiscFlags = 0;
+		//bd.StructureByteStride = 16;
+
+		D3D11_SUBRESOURCE_DATA initData;
+		initData.pSysMem = mesh;
+		initData.SysMemPitch = 0;
+		initData.SysMemSlicePitch = 0;
+
+		HRESULT hr = device->CreateBuffer(&bd, &initData, &buf);
+	}
+
+	void Init()
+	{
+		vertexInfo mesh[] =
+		{
+			XMFLOAT3(0.0f, 0.5f, 0.5f),
+			XMFLOAT3(0.0f, 0.0f, 0.5f),
+			XMFLOAT3(0.5f, -0.5f, 0.5f),
+			XMFLOAT3(0.5f, 0.0f, 0.0f),
+			XMFLOAT3(-0.5f, -0.5f, 0.5f),
+			XMFLOAT3(0.0f, 0.5f, 0.0f),
+		};
+
+		Create(buffer[0], mesh);
+
+		UINT stride = sizeof(mesh);
+		UINT offset = 0;
+		context->IASetVertexBuffers(0, 1, buffer, &stride, &offset);
+	}
+}
+
 namespace ConstBuf
 {
 	ID3D11Buffer* buffer[8];
 
 #define constCount 32
-
 
 	float drawerV[constCount];
 
@@ -580,7 +632,6 @@ namespace ConstBuf
 		XMMATRIX model;
 		float hilight;
 	} drawerMat;
-
 
 	struct {
 		XMMATRIX world[2];
@@ -594,16 +645,14 @@ namespace ConstBuf
 		XMFLOAT4 aspect;
 	} frame;
 
-
-	XMFLOAT4 global[constCount];
-
-
 	struct {
 		XMFLOAT4 albedo;
 		float metallic;
 		float roughness;
 		XMFLOAT3 pos;
 	} ObjectParams;
+
+	XMFLOAT4 global[constCount];
 
 	int roundUp(int n, int r)
 	{
@@ -876,6 +925,7 @@ void Dx11Init()
 	Depth::Init();
 	Blend::Init();
 	ConstBuf::Init();
+	VertexBuf::Init();
 	Sampler::Init();
 	Shaders::Init();
 
@@ -1001,7 +1051,7 @@ void mainLoop()
 	Textures::CreateMipMap();
 	//--------------------------------
 
-	Draw::SwitchRenderTextures();
+	Draw::OutputRenderTextures();
 
 	Blend::Blending(Blend::blendmode::off, Blend::blendop::add);
 	Depth::Depth(Depth::depthmode::off);
@@ -1011,9 +1061,9 @@ void mainLoop()
 	Shaders::pShader(1);
 	Draw::NullDrawer(1, 1);
 
-	Draw::OutputRenderTextures();
-	Shaders::pShader(3);
-	Draw::NullDrawer(1, 1);
+	/*Draw::OutputRenderTextures();
+	Shaders::pShader(5);
+	Draw::NullDrawer(1, 1);*/
 
 	//--------------------------
 	Draw::Present();

@@ -30,6 +30,12 @@ cbuffer objParams : register(b0)
     float gy;
 };
 
+struct VS_INPUT
+{
+    float4 pos : POSITION;
+    float3 color : COLOR;
+};
+
 struct VS_OUTPUT
 {
     float4 pos : SV_POSITION;
@@ -124,16 +130,11 @@ void computeSphereFrame(float2 uv, int faceID, out float3 tangent, out float3 bi
 }
 
 
-VS_OUTPUT VS(uint vID : SV_VertexID, uint iID : SV_InstanceID)
+VS_OUTPUT VS(VS_INPUT v_info, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
 
-    float2 quad[6] = {
-        float2(-1, -1), float2(1, -1), float2(-1, 1),
-        float2(1, -1), float2(1, 1), float2(-1, 1)
-    };
-
-    float2 p = quad[vID % 6];
+    float2 p = v_info.pos;
     int qID = vID / 6;
     int vg = (int)(gx * gy);
     int localID = qID % vg;
