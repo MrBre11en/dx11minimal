@@ -566,6 +566,7 @@ namespace Sampler
 namespace VertexBuf
 {
 	ID3D11Buffer* buffer[8];
+	ID3D11InputLayout* inputLayout;
 
 	struct vertexInfo
 	{
@@ -610,9 +611,13 @@ namespace VertexBuf
 
 		Create(buffer[0], mesh);
 
-		UINT stride = sizeof(mesh);
-		UINT offset = 0;
-		context->IASetVertexBuffers(0, 1, buffer, &stride, &offset);
+		device->CreateInputLayout(
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			&inputLayout
+		);
 	}
 }
 
@@ -906,7 +911,11 @@ namespace InputAssembler
 
 		context->IASetPrimitiveTopology(ttype);
 		context->IASetInputLayout(NULL);
-		context->IASetVertexBuffers(0, 0, NULL, NULL, NULL);
+
+		UINT stride = 6;
+		UINT offset = 0;
+		context->IASetVertexBuffers(0, 1, &VertexBuf::buffer[0], &stride, &offset);
+		//context->IASetVertexBuffers(0, 0, NULL, NULL, NULL);
 	}
 
 }
