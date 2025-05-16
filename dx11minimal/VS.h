@@ -91,54 +91,12 @@ float length(float3 c)
     return l;
 }
 
-float3 cubeToSphere(float3 p)
-{
-    return normalize(p);
-}
-float3 calcGeom(float2 uv, int faceID)
-{
-    float2 p = uv * 2.0 - 1.0;
-    float3 cubePos;
-    if (faceID == 0)      cubePos = float3(-1, p.y, p.x);
-    else if (faceID == 1) cubePos = float3(1, p.y, -p.x);
-    else if (faceID == 2) cubePos = float3(-p.x, -1, -p.y);
-    else if (faceID == 3) cubePos = float3(-p.x, 1, p.y);
-    else if (faceID == 4) cubePos = float3(-p.x, p.y, -1);
-    else if (faceID == 5) cubePos = float3(p.x, p.y, 1);
-    else                  cubePos = float3(0, 0, 0); // fallback
-    cubePos = normalize(cubePos);
-    return cubePos;
-    cubePos = rotX(cubeToSphere(cubePos), time.x * 0.05);
-    return rotY(cubeToSphere(cubePos), time.x * 0.05);
-}
-
-void computeSphereFrame(float2 uv, int faceID, out float3 tangent, out float3 binormal, out float3 normal)
-{
-    float2 step = 1.0 / float2(gx, gy);
-
-    float3 p = calcGeom(uv, faceID);
-    float3 px = calcGeom(uv + float2(step.x, 0), faceID);
-    float3 py = calcGeom(uv + float2(0, step.y), faceID);
-
-    normal = normalize(p);
-    float3 up = abs(normal.y) > 0.99 ? float3(1, 0, 0) : float3(0, 1, 0);
-
-    tangent = normalize(cross(up, normal));
-    binormal = normalize(cross(normal, tangent));
-
-
-}
-
 
 VS_OUTPUT VS(VS_INPUT v_info, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
 
     float2 p = v_info.pos;
-    int qID = vID / 6;
-    int vg = (int)(gx * gy);
-    int localID = qID % vg;
-    int faceID = qID / vg;
 
     int px = localID % (int)gx;
     int py = localID / (int)gx;
@@ -153,11 +111,7 @@ VS_OUTPUT VS(VS_INPUT v_info, uint iID : SV_InstanceID)
     float3 pos1 = calcGeom(uv1, faceID);
     float3 pos2 = calcGeom(uv2, faceID);
     float3 tangent, binormal, normal;
-    computeSphereFrame(uv, faceID, tangent, binormal, normal);
 
-    binormal = normalize(binormal);
-    tangent = normalize(tangent);
-    normal = normalize(normal);
     int t = iID % 5 + 1;
     int s = (iID - t + 1) % 3 + 1;
     pos.x = pos.x + 9;
