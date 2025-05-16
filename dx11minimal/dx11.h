@@ -437,7 +437,7 @@ namespace Shaders {
 	{
 		HRESULT hr;
 
-		hr = D3DCompileFromFile(name, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_4_1", NULL, NULL, &VS[i].pBlob, &pErrorBlob);
+		hr = D3DCompileFromFile(name, NULL, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VS", "vs_4_1", NULL, 0, &VS[i].pBlob, &pErrorBlob);
 		CompilerLog(name, hr, "vertex shader compiled: ");
 
 		if (hr == S_OK)
@@ -590,15 +590,15 @@ namespace VertexBuf
 	void CreateInputLayout()
 	{
 		D3D11_INPUT_ELEMENT_DESC layout[] = {
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+			//{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
 
 		device->CreateInputLayout(
 			layout,
 			ARRAYSIZE(layout),
-			Shaders::VS[1].pBlob->GetBufferPointer(),
-			Shaders::VS[1].pBlob->GetBufferSize(),
+			Shaders::VS[0].pBlob->GetBufferPointer(),
+			Shaders::VS[0].pBlob->GetBufferSize(),
 			&inputLayout
 		);
 	}
@@ -850,7 +850,7 @@ namespace Depth
 namespace Device
 {
 
-#define DirectXDebugMode false
+#define DirectXDebugMode true
 
 	D3D_DRIVER_TYPE	driverType = D3D_DRIVER_TYPE_NULL;
 
@@ -911,7 +911,7 @@ namespace InputAssembler
 		context->IASetPrimitiveTopology(ttype);
 		context->IASetInputLayout(VertexBuf::inputLayout);
 
-		UINT stride = 6;
+		UINT stride = 12;
 		UINT offset = 0;
 		context->IASetVertexBuffers(0, 1, &VertexBuf::buffer[0], &stride, &offset);
 		//context->IASetVertexBuffers(0, 0, NULL, NULL, NULL);

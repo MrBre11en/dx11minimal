@@ -33,7 +33,7 @@ cbuffer objParams : register(b0)
 struct VS_INPUT
 {
     float3 pos : POSITION;
-    float3 color : COLOR;
+    //float3 color : COLOR;
 };
 
 struct VS_OUTPUT
@@ -96,43 +96,15 @@ VS_OUTPUT VS(VS_INPUT v_info, uint iID : SV_InstanceID)
 {
     VS_OUTPUT output = (VS_OUTPUT)0;
 
-    float2 p = v_info.pos;
-
-    int px = localID % (int)gx;
-    int py = localID / (int)gx;
-
-    float2 uv = float2(px + 0.5 + p.x * 0.5, py + 0.5 + p.y * 0.5) / float2(gx, gy);
-    float2 step = 1 / float2(gx, gy);
-    float2 uv1 = uv + float2(step.x, 0);
-    float2 uv2 = uv + float2(0, step.y);
-
-
-    float3 pos = calcGeom(uv, faceID);
-    float3 pos1 = calcGeom(uv1, faceID);
-    float3 pos2 = calcGeom(uv2, faceID);
-    float3 tangent, binormal, normal;
-
-    int t = iID % 5 + 1;
-    int s = (iID - t + 1) % 3 + 1;
-    pos.x = pos.x + 9;
-    pos.y = pos.y + 5;
-    pos.x = pos.x - t * 3;
-    pos.y = pos.y - s * 2.5;
-    pos *= 0.35f;
-
     float3 albedo = float3(0.8, 0.8, 0.8);
     float metallic = 0.5;
     float roughness = 0.5;
 
-    output.wpos = float4(pos, 1.0);
-    output.vpos = mul(float4(pos, 1.0), view[0]);
-    output.pos = mul(float4(pos, 1.0), mul(view[0], proj[0]));
-    output.normal = float4(normal, 1.0);
-    output.tangent = float4(tangent, 1.0);
-    output.binormal = float4(binormal, 1.0);
-    output.uv = uv;
-    output.metallic = float2(metallic, 1);
-    output.albedo = float4(albedo, 1);
-    output.roughness = float2(roughness, 1);
+    output.wpos = float4(v_info.pos, 1.0);
+    output.vpos = mul(float4(v_info.pos, 1.0), view[0]);
+    output.pos = mul(float4(v_info.pos, 1.0), mul(view[0], proj[0]));
+    //output.metallic = float2(metallic, 1);
+    //output.albedo = float4(albedo, 1);
+    //output.roughness = float2(roughness, 1);
     return output;
 }

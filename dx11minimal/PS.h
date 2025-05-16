@@ -408,6 +408,8 @@ float3 ACESFilm(float3 x)
 
 float4 PS(PS_INPUT input) : SV_Target
 {
+    return float4(1, 1, 1, 1);
+
     float3 vnorm = normalize(input.normal.xyz);
     float3 tangent = normalize(input.tangent.xyz);
     float3 binormal = normalize(input.binormal.xyz);
