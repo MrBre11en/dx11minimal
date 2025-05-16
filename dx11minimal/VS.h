@@ -32,7 +32,7 @@ cbuffer objParams : register(b0)
 
 struct VS_INPUT
 {
-    float4 pos : POSITION;
+    float3 pos : POSITION;
     float3 color : COLOR;
 };
 
@@ -165,57 +165,10 @@ VS_OUTPUT VS(VS_INPUT v_info, uint iID : SV_InstanceID)
     pos.x = pos.x - t * 3;
     pos.y = pos.y - s * 2.5;
     pos *= 0.35f;
-    float3 albedo;
-    float metallic;
-    float roughness;
-    if (t == 1.0 && s == 1.0) {
-        // Хром
-        albedo = float3(0.95, 0.95, 0.95);
-        metallic = 1.0;
-        roughness = 0.1;
-    }
-    else if (t == 3.0 && s == 1.0) {
-        // Золото
-        albedo = float3(1.00, 0.71, 0.29);
-        metallic = 1.0;
-        roughness = 0.3;
-    }
-    else if (t == 2.0 && s == 1.0) {
-        // Железо
-        albedo = float3(0.56, 0.57, 0.58);
-        metallic = 1.0;
-        roughness = 0.2;
-    }
-    else if (t == 4.0 && s == 1.0) {
-        // Пластик (красный)
-        albedo = float3(0.8, 0.1, 0.1);
-        metallic = 0.0;
-        roughness = 0.4;
-    }
-    else if (t == 5.0 && s == 1.0) {
-        // Резина
-        albedo = float3(0.015, 0.015, 0.015);
-        metallic = 0.0;
-        roughness = 0.9;
-    }
-    else if (s == 2.0) {
-        // Для второго ряда - градация roughness
-        albedo = float3(0.8, 0.8, 0.8);
-        metallic = 0.5;
-        roughness = t / 5.0; // От 0.2 до 1.0
-    }
-    else if (s == 3.0) {
-        // Для третьего ряда - градация metallic
-        albedo = float3(0.8, 0.8, 0.8);
-        metallic = t % 2; // От 1.0 до 0.2
-        roughness = 0.5;
-    }
-    else {
-        // По умолчанию
-        albedo = float3(0.8, 0.8, 0.8);
-        metallic = 0.5;
-        roughness = 0.5;
-    }
+
+    float3 albedo = float3(0.8, 0.8, 0.8);
+    float metallic = 0.5;
+    float roughness = 0.5;
 
     output.wpos = float4(pos, 1.0);
     output.vpos = mul(float4(pos, 1.0), view[0]);

@@ -394,16 +394,6 @@ namespace Shaders {
 		ID3DBlob* pBlob;
 	} PixelShader;
 
-	typedef struct {
-		ID3D11VertexShader* pShader;
-		ID3DBlob* pBlob;
-	} PostProcessVertexShader;
-
-	typedef struct {
-		ID3D11PixelShader* pShader;
-		ID3DBlob* pBlob;
-	} PostProcessPixelShader;
-
 	VertexShader VS[255];
 	PixelShader PS[255];
 
@@ -597,6 +587,22 @@ namespace VertexBuf
 		HRESULT hr = device->CreateBuffer(&bd, &initData, &buf);
 	}
 
+	void CreateInputLayout()
+	{
+		D3D11_INPUT_ELEMENT_DESC layout[] = {
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		};
+
+		device->CreateInputLayout(
+			layout,
+			ARRAYSIZE(layout),
+			Shaders::VS[1].pBlob->GetBufferPointer(),
+			Shaders::VS[1].pBlob->GetBufferSize(),
+			&inputLayout
+		);
+	}
+
 	void Init()
 	{
 		vertexInfo mesh[] =
@@ -610,14 +616,7 @@ namespace VertexBuf
 		};
 
 		Create(buffer[0], mesh);
-
-		device->CreateInputLayout(
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			&inputLayout
-		);
+		CreateInputLayout();
 	}
 }
 
@@ -910,7 +909,7 @@ namespace InputAssembler
 		}
 
 		context->IASetPrimitiveTopology(ttype);
-		context->IASetInputLayout(NULL);
+		context->IASetInputLayout(VertexBuf::inputLayout);
 
 		UINT stride = 6;
 		UINT offset = 0;
@@ -934,9 +933,9 @@ void Dx11Init()
 	Depth::Init();
 	Blend::Init();
 	ConstBuf::Init();
-	VertexBuf::Init();
 	Sampler::Init();
 	Shaders::Init();
+	VertexBuf::Init();
 
 	//main RT
 	Textures::Create(0, Textures::tType::flat, Textures::tFormat::u8, XMFLOAT2(width, height), false, true);
