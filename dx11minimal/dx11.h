@@ -535,7 +535,6 @@ namespace Sampler
 		sampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
 		sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 		device->CreateSamplerState(&sampDesc, &pSamplerComp);
-
 	}
 
 	void Sampler(targetshader shader, unsigned int slot, filter filterType, addr addressU, addr addressV)
@@ -953,6 +952,7 @@ namespace InputAssembler
 
 		context->IASetPrimitiveTopology(ttype);
 		context->IASetInputLayout(VertexBuf::inputLayout);
+		Sampler::SamplerComp(0);
 
 		UINT stride = sizeof(VertexBuf::vertexInfo);
 		UINT offset = 0;

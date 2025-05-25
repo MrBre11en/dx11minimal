@@ -100,9 +100,10 @@ VS_OUTPUT VS(VS_INPUT v_info, uint iID : SV_InstanceID)
     float metallic = 0.5;
     float roughness = 0.5;
 
-    output.wpos = float4(v_info.pos, 1.0);
-    output.vpos = mul(float4(v_info.pos, 1.0), view[0]);
-    output.pos = mul(float4(v_info.pos, 1.0), mul(view[0], proj[0]));
+    float4 pos = float4(v_info.pos, 1.0);
+    output.wpos = pos
+    output.vpos = mul(pos, view[0]);
+    output.pos = mul(pos, mul(view[0], proj[0]));
     //output.metallic = float2(metallic, 1);
     //output.albedo = float4(albedo, 1);
     //output.roughness = float2(roughness, 1);
