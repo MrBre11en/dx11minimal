@@ -556,12 +556,18 @@ namespace Sampler
 namespace VertexBuf
 {
 	ID3D11Buffer* buffer[8];
+	ID3D11Buffer* index_buffer[8];
 	ID3D11InputLayout* inputLayout;
 
 	struct vertexInfo
 	{
 		XMFLOAT3 pos;
-		XMFLOAT3 color;
+		//XMFLOAT3 color;
+
+		vertexInfo(XMFLOAT3 Pos)
+		{
+			pos = Pos;
+		}
 	};
 
 	int roundUp(int n, int r)
@@ -569,34 +575,71 @@ namespace VertexBuf
 		return n - (n % r) + r;
 	}
 
-	void Create(ID3D11Buffer*& buf, vertexInfo mesh[])
+	void Create(int id, vertexInfo mesh[])
 	{
-		D3D11_BUFFER_DESC bd;
-		bd.Usage = D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = roundUp(sizeof(mesh) * 3, 16);
-		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		bd.CPUAccessFlags = 0;
-		bd.MiscFlags = 0;
-		//bd.StructureByteStride = 16;
+		ID3D11Buffer* buf = buffer[id];
+		ID3D11Buffer* i_buf = index_buffer[id];
+		int vertex_count = sizeof(mesh);
 
-		D3D11_SUBRESOURCE_DATA initData;
-		initData.pSysMem = mesh;
-		initData.SysMemPitch = 0;
-		initData.SysMemSlicePitch = 0;
+		unsigned long* indices;
+		indices = new unsigned long[vertex_count];
+		for (int i = 0; i < vertex_count; i++)
+		{
+			indices[i] = i;
+		}
 
-		HRESULT hr = device->CreateBuffer(&bd, &initData, &buf);
+		D3D11_BUFFER_DESC vbd;
+		vbd.Usage = D3D11_USAGE_DEFAULT;
+		vbd.ByteWidth = sizeof(vertexInfo) * vertex_count;
+		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		vbd.CPUAccessFlags = 0;
+		vbd.MiscFlags = 0;
+		vbd.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA vertexData;
+		vertexData.pSysMem = mesh;
+		vertexData.SysMemPitch = 0;
+		vertexData.SysMemSlicePitch = 0;
+
+		HRESULT vhr = device->CreateBuffer(&vbd, &vertexData, &buf);
+
+		D3D11_BUFFER_DESC ibd;
+		ibd.Usage = D3D11_USAGE_DEFAULT;
+		ibd.ByteWidth = sizeof(unsigned long) * vertex_count;
+		ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		ibd.CPUAccessFlags = 0;
+		ibd.MiscFlags = 0;
+		ibd.StructureByteStride = 0;
+
+		D3D11_SUBRESOURCE_DATA indexData;
+		indexData.pSysMem = indices;
+		indexData.SysMemPitch = 0;
+		indexData.SysMemSlicePitch = 0;
+
+		HRESULT ihr = device->CreateBuffer(&ibd, &indexData, &i_buf);
 	}
 
 	void CreateInputLayout()
 	{
-		D3D11_INPUT_ELEMENT_DESC layout[] = {
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-			//{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-		};
+		D3D11_INPUT_ELEMENT_DESC layout[1];
+		layout[0].SemanticName = "POSITION";
+		layout[0].SemanticIndex = 0;
+		layout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
+		layout[0].InputSlot = 0;
+		layout[0].AlignedByteOffset = 0;
+		layout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+		layout[0].InstanceDataStepRate = 0;
+
+		unsigned int numElements = sizeof(layout) / sizeof(layout[0]);
+
+		//D3D11_INPUT_ELEMENT_DESC layout[] = {
+		//	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		//	//{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		//};
 
 		device->CreateInputLayout(
 			layout,
-			ARRAYSIZE(layout),
+			numElements,
 			Shaders::VS[0].pBlob->GetBufferPointer(),
 			Shaders::VS[0].pBlob->GetBufferSize(),
 			&inputLayout
@@ -607,15 +650,15 @@ namespace VertexBuf
 	{
 		vertexInfo mesh[] =
 		{
-			XMFLOAT3(0.0f, 0.5f, 0.5f),
-			XMFLOAT3(0.0f, 0.0f, 0.5f),
-			XMFLOAT3(0.5f, -0.5f, 0.5f),
-			XMFLOAT3(0.5f, 0.0f, 0.0f),
-			XMFLOAT3(-0.5f, -0.5f, 0.5f),
-			XMFLOAT3(0.0f, 0.5f, 0.0f),
+			vertexInfo(XMFLOAT3(0.0f, 0.5f, 0.5f)),
+			vertexInfo(XMFLOAT3(0.0f, 0.0f, 0.5f)),
+			vertexInfo(XMFLOAT3(0.5f, -0.5f, 0.5f)),
+			vertexInfo(XMFLOAT3(0.5f, 0.0f, 0.0f)),
+			vertexInfo(XMFLOAT3(-0.5f, -0.5f, 0.5f)),
+			vertexInfo(XMFLOAT3(0.0f, 0.5f, 0.0f))
 		};
 
-		Create(buffer[0], mesh);
+		Create(0, mesh);
 		CreateInputLayout();
 	}
 }
@@ -911,7 +954,7 @@ namespace InputAssembler
 		context->IASetPrimitiveTopology(ttype);
 		context->IASetInputLayout(VertexBuf::inputLayout);
 
-		UINT stride = 12;
+		UINT stride = sizeof(VertexBuf::vertexInfo);
 		UINT offset = 0;
 		context->IASetVertexBuffers(0, 1, &VertexBuf::buffer[0], &stride, &offset);
 		//context->IASetVertexBuffers(0, 0, NULL, NULL, NULL);
